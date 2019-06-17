@@ -1,0 +1,28 @@
+{
+    "name": "circli/url-generator-extension",
+    "type": "circli-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Sundqvist",
+            "email": "andreas@oak-valley.se"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "sunkan/blueprint": "^3.0",
+        "psr/container": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "php-di/php-di": "^6.0",
+        "circli/contracts": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Circli\\Extensions\\UrlGenerator\\": "src/"
+        }
+    },
+    "require-dev": {
+        "polus/adr": "^4.0"
+    }
+}
