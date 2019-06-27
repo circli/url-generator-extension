@@ -8,6 +8,8 @@ use Polus\Adr\Interfaces\ActionInterface;
 class ActionCollection
 {
     private $collection = [];
+    /** @var ActionInterface|null */
+    private $currentAction;
 
     public function addAction(ActionInterface $action, string $route, string $method)
     {
@@ -37,5 +39,17 @@ class ActionCollection
             throw new \InvalidArgumentException('No route to action found');
         }
         return Url::fromRoute($route, $data);
+    }
+
+    public function setCurrentAction($handler): void
+    {
+        if ($handler instanceof ActionInterface) {
+            $this->currentAction = $handler;
+        }
+    }
+
+    public function getCurrentAction(): ?ActionInterface
+    {
+        return $this->currentAction;
     }
 }

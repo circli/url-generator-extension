@@ -25,6 +25,10 @@ class Url extends AbstractHelper
         if (is_string($args[0]) && class_exists($args[0]) && $this->actionCollection->exists($args[0])) {
             return $this->actionCollection->getUrl($args[0], $args[1] ?? []);
         }
+        $currentAction = $this->actionCollection->getCurrentAction();
+        if ($currentAction) {
+            return $this->actionCollection->getUrl(get_class($currentAction));
+        }
 
         throw new \InvalidArgumentException('First argument must be an action class name');
     }
