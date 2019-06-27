@@ -2,6 +2,8 @@
 
 namespace Circli\Extensions\UrlGenerator\Object;
 
+use Circli\Extensions\UrlGenerator\QueryStringBuilder;
+use Circli\Extensions\UrlGenerator\SimpleQueryStringBuilder;
 use InvalidArgumentException;
 
 final class Url
@@ -10,7 +12,7 @@ final class Url
     private $route;
     /** @var array */
     private $params;
-    /** @var array */
+    /** @var QueryStringBuilder */
     private $query;
 
     public static function fromRoute(string $route, array $replaceParams = [])
@@ -64,8 +66,19 @@ final class Url
         return $this;
     }
 
-    public function withQuery(array $query): self
+    public function withQuery($query): self
     {
+        if (!$query instanceof QueryStringBuilder) {
+            if (is_string($query)) {
+                $query = SimpleQueryStringBuilder::fromString($query);
+            }
+            elseif (is_array($query)) {
+                $query = SimpleQueryStringBuilder::fromArray($query);
+            }
+            else {
+                throw new InvalidArgumentException('Must be string, array or QueryStringBuilder');
+            }
+        }
         $self = clone $this;
         $self->query = $query;
         return $self;
@@ -78,8 +91,8 @@ final class Url
             $url = str_replace($param['replace'], $param['value'] ?? $name, $url);
         }
 
-        if ($this->query) {
-            $url .= '?' . http_build_query($this->query);
+        if ($this->query instanceof QueryStringBuilder) {
+            $url .= '?' . http_build_query($this->query->getQuery());
         }
 
         return $url;
