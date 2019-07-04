@@ -9,12 +9,13 @@ use Circli\Extensions\UrlGenerator\TemplateHelpers\Url;
 use Circli\WebCore\Events\PostRouteDispatch;
 use Circli\WebCore\Events\PreRegisterRoute;
 use Fig\EventDispatcher\AggregateProvider;
+use Polus\Router\RouterDispatcherInterface;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use function DI\autowire;
 use function DI\decorate;
 
-class Extension implements ExtensionInterface
+final class Extension implements ExtensionInterface
 {
     public function __construct(PathContainer $paths)
     {
@@ -35,7 +36,10 @@ class Extension implements ExtensionInterface
                     $collection->addAction($event->getAction(), $event->getRoute(), $event->getMethod());
                 });
                 $defaultProvider->listen(PostRouteDispatch::class, static function (PostRouteDispatch $event) use ($collection) {
-                    $collection->setCurrentAction($event->getRoute()->getHandler());
+                    $route = $event->getRoute();
+                    if ($route->getStatus() === RouterDispatcherInterface::FOUND) {
+                        $collection->setCurrentAction($route->getHandler());
+                    }
                 });
                 $previous->addProvider($defaultProvider);
                 return $previous;
