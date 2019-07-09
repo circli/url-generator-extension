@@ -27,6 +27,14 @@ final class Url
                     $value = null;
                     if (isset($replaceParams[$name])) {
                         $value = $replaceParams[$name];
+                        if (is_object($value)) {
+                            if (method_exists($value, 'toString')) {
+                                $value = $value->toString();
+                            }
+                            elseif (method_exists($value, '__toString')) {
+                                $value = (string) $value;
+                            }
+                        }
                         if ($rule && !preg_match('/' . $rule . '/', $value)) {
                             throw new InvalidArgumentException('Value for "' . $name . '" is not of valid type.');
                         }
@@ -53,6 +61,14 @@ final class Url
     {
         if (isset($this->params[$paramName])) {
             $param = $this->params[$paramName];
+            if (is_object($value)) {
+                if (method_exists($value, 'toString')) {
+                    $value = $value->toString();
+                }
+                elseif (method_exists($value, '__toString')) {
+                    $value = (string) $value;
+                }
+            }
             if ($param['rule'] && !preg_match('/' . $param['rule'] . '/', $value)) {
                 throw new InvalidArgumentException('Value for "' . $paramName . '" is not of valid type.');
             }
