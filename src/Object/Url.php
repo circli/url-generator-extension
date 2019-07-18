@@ -35,9 +35,9 @@ final class Url
                                 $value = (string) $value;
                             }
                         }
-                        if ($rule && !preg_match('/' . $rule . '/', $value)) {
-                            throw new InvalidArgumentException('Value for "' . $name . '" is not of valid type.');
-                        }
+#                        if ($rule && !preg_match('/' . $rule . '/', $value)) {
+ #                           throw new InvalidArgumentException('Value for "' . $name . '" is not of valid type.');
+  #                      }
                     }
                     $params[$match['2']] = [
                         'value' => $value,
