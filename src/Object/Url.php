@@ -15,7 +15,7 @@ final class Url
     /** @var QueryStringBuilder */
     private $query;
 
-    public static function fromRoute(string $route, array $replaceParams = [])
+    public static function fromRoute(string $route, array $replaceParams = []): self
     {
         $params = [];
         if (strpos($route, '{')) {
