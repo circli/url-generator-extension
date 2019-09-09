@@ -8,52 +8,34 @@ use InvalidArgumentException;
 
 final class Url
 {
-    /** @var string */
-    private $route;
+    /** @var UrlRoute */
+    private $bestMatch;
+    /** @var UrlRoute[] */
+    private $routes = [];
     /** @var array */
     private $params;
     /** @var QueryStringBuilder */
     private $query;
 
-    public static function fromRoute(string $route, array $replaceParams = []): self
+    public static function fromRoute(array $routeData, array $replaceParams = []): self
     {
+        $routes = [];
         $params = [];
-        if (strpos($route, '{')) {
-            $rs = preg_match_all('/(\{(\w+)(\:([^\/]*))?\})/', $route, $matches, PREG_SET_ORDER);
-            if ($rs) {
-                foreach ($matches as $match) {
-                    $name = $match[2];
-                    $rule = $match[4] ?? null;
-                    $value = null;
-                    if (isset($replaceParams[$name])) {
-                        $value = $replaceParams[$name];
-                        if (is_object($value)) {
-                            if (method_exists($value, 'toString')) {
-                                $value = $value->toString();
-                            }
-                            elseif (method_exists($value, '__toString')) {
-                                $value = (string) $value;
-                            }
-                        }
-                        if ($rule && !preg_match('/' . $rule . '/', $value)) {
-                            throw new InvalidArgumentException('Value for "' . $name . '" is not of valid type.');
-                        }
-                    }
-                    $params[$match['2']] = [
-                        'value' => $value,
-                        'replace' => $match[0],
-                        'rule' => $rule
-                    ];
-                }
-            }
+        foreach ($routeData['routes'] as $stringRoute) {
+            $route = UrlRoute::fromString($stringRoute);
+            $params += $route->getParams();
+            $routes[] = $route;
         }
-
-        return new self($route, $params);
+        $self = new self($routes, $params);
+        foreach ($replaceParams as $name => $param) {
+            $self = $self->withParam($name, $param);
+        }
+        return $self;
     }
 
-    private function __construct(string $route, array $params)
+    private function __construct(array $routes, array $params)
     {
-        $this->route = $route;
+        $this->routes = $routes;
         $this->params = $params;
     }
 
@@ -74,6 +56,11 @@ final class Url
             }
 
             $self = clone $this;
+
+            if ($param['value'] === null) {
+                $this->bestMatch = null;
+            }
+
             $param['value'] = $value;
             $self->params[$paramName] = $param;
             return $self;
@@ -102,16 +89,45 @@ final class Url
 
     public function toString(): string
     {
-        $url = $this->route;
-        foreach ($this->params as $name => $param) {
-            $url = str_replace($param['replace'], $param['value'] ?? $name, $url);
-        }
+        try {
+            $params = array_filter($this->params, function($param) {
+                return $param['value'] !== null;
+            });
 
-        if ($this->query instanceof QueryStringBuilder) {
-            $url .= '?' . http_build_query($this->query->getQuery());
-        }
+            if (!$this->bestMatch) {
+                $paramCount = count($params);
+                foreach ($this->routes as $route) {
+                    $routeParamCount = count($route->getParams());
+                    if ($paramCount === 0 && $routeParamCount === 0) {
+                        $this->bestMatch = $route;
+                        break;
+                    }
 
-        return $url;
+                    if ($paramCount === $routeParamCount) {
+                        //todo check param names
+                        $this->bestMatch = $route;
+                        break;
+                    }
+
+                    $this->bestMatch = $route;
+                }
+            }
+
+            $url = $this->bestMatch->getRoute();
+            foreach ($this->bestMatch->getParams() as $name => $routeParam) {
+                $valueParam = $this->params[$name];
+                $url = str_replace($routeParam['replace'], $valueParam['value'] ?? $name, $url);
+            }
+
+            if ($this->query instanceof QueryStringBuilder) {
+                $url .= '?' . http_build_query($this->query->getQuery());
+            }
+
+            return $url;
+        }
+        catch (\Throwable $e) {
+            return $e->getMessage();
+        }
     }
 
     public function __toString()

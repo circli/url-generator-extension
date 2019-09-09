@@ -13,10 +13,16 @@ class ActionCollection
 
     public function addAction(ActionInterface $action, string $route, string $method)
     {
-        $this->collection[get_class($action)] = [
-            'route' => $route,
-            'method' => $method,
-        ];
+        if (!isset($this->collection[get_class($action)])) {
+            $this->collection[get_class($action)] = [
+                'route' => $route,
+                'method' => $method,
+                'routes' => [
+                    $route,
+                ],
+            ];
+        }
+        $this->collection[get_class($action)]['routes'][] = $route;
     }
 
     public function exists(string $action): bool
@@ -34,11 +40,10 @@ class ActionCollection
 
     public function getUrl(string $action, array $data = []): Url
     {
-        $route = $this->getRoute($action);
-        if (!$route) {
+        if (!isset($this->collection[$action])) {
             throw new \InvalidArgumentException('No route to action found');
         }
-        return Url::fromRoute($route, $data);
+        return Url::fromRoute($this->collection[$action], $data);
     }
 
     public function setCurrentAction($handler): void
