@@ -5,6 +5,7 @@ namespace Circli\Extensions\UrlGenerator\Object;
 use Circli\Extensions\UrlGenerator\QueryStringBuilder;
 use Circli\Extensions\UrlGenerator\SimpleQueryStringBuilder;
 use InvalidArgumentException;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class Url
 {
@@ -31,6 +32,13 @@ final class Url
             $self = $self->withParam($name, $param);
         }
         return $self;
+    }
+
+    public static function fromRequest(ServerRequestInterface $request): self
+    {
+        return new self([
+            UrlRoute::fromString($request->getUri()->getPath())
+        ], []);
     }
 
     private function __construct(array $routes, array $params)
