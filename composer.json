@@ -15,7 +15,7 @@
         "psr/container": "^1.0",
         "psr/event-dispatcher": "^1.0",
         "php-di/php-di": "^6.0",
-        "circli/contracts": "dev-master"
+        "circli/contracts": "^1.0"
     },
     "autoload": {
         "psr-4": {
