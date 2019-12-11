@@ -22,7 +22,9 @@ class ActionCollection
                 ],
             ];
         }
-        $this->collection[get_class($action)]['routes'][] = $route;
+        if (in_array($route, $this->collection[get_class($action)]['routes'], true) === false) {
+            $this->collection[get_class($action)]['routes'][] = $route;
+        }
     }
 
     public function exists(string $action): bool
@@ -56,5 +58,10 @@ class ActionCollection
     public function getCurrentAction(): ?ActionInterface
     {
         return $this->currentAction;
+    }
+
+    public function getCollection(): array
+    {
+        return $this->collection;
     }
 }
